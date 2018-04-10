@@ -12,11 +12,14 @@ import java.util.Locale;
 import android.widget.Toast;
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity{
 	private TextToSpeech textToSpeech;
+	private HashMap<String, String> hashMap = new HashMap<String, String>();
+	private final static String ID = "KEY_PARAM_UTTERANCE_ID";
 
-	class TextToSpeechListener implements TextToSpeech.OnInitListener{
+	class Text2SpeechListener implements TextToSpeech.OnInitListener{
 		@Override
 		public void onInit( int status ){
 			Context context = getApplicationContext();
@@ -30,6 +33,22 @@ public class MainActivity extends AppCompatActivity{
 			}else{
 				Toast.makeText( context, "need TextToSpeech Engine", Toast.LENGTH_SHORT ).show();
 			}
+			Toast.makeText( context, "Ready TextToSpeech Engine", Toast.LENGTH_SHORT ).show();
+			//Must in onInit() set Listener !
+			textToSpeech.setOnUtteranceCompletedListener( new Text2SpeechOnUtteranceCompletedListener() );
+			hashMap.put( TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, ID );
+		}
+	}
+
+	class Text2SpeechOnUtteranceCompletedListener implements TextToSpeech.OnUtteranceCompletedListener{
+		@Override
+		public void onUtteranceCompleted( final String utteranceId ){
+			runOnUiThread( new Runnable(){
+				@Override
+				public void run(){
+					Toast.makeText( getApplicationContext(), "finish speech " + utteranceId , Toast.LENGTH_SHORT ).show();
+				}
+			});
 		}
 	}
 
@@ -37,7 +56,7 @@ public class MainActivity extends AppCompatActivity{
 		if( textToSpeech.isSpeaking() ){
 			textToSpeech.stop();
 		}
-		textToSpeech.speak( "pen pineapple apple pen", TextToSpeech.QUEUE_FLUSH, null );
+		textToSpeech.speak( "pen pineapple apple pen", TextToSpeech.QUEUE_FLUSH, hashMap );
 	}
 
 	@Override
@@ -47,7 +66,7 @@ public class MainActivity extends AppCompatActivity{
 		Toolbar toolbar = (Toolbar) findViewById( R.id.toolbar );
 		setSupportActionBar( toolbar );
 
-		textToSpeech = new TextToSpeech( this, new TextToSpeechListener() );
+		textToSpeech = new TextToSpeech( this, new Text2SpeechListener() );
 	}
 
 	@Override
